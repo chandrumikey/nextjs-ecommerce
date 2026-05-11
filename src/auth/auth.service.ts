@@ -41,3 +41,34 @@ export class AuthController {
     return this.authService.getAllAdmins();
   }
 }
+
+async register(registerDto: RegisterDto) {
+  if (!registerDto.email || !registerDto.password || !registerDto.name) {
+    throw new ConflictException('Email, password, and name are required');
+  }
+
+  const existingUser = await this.prisma.user.findUnique({
+    where: { email: registerDto.email },
+  });
+
+  if (existingUser) {
+    throw new ConflictException('Email already exists');
+  }
+
+  const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+
+  // Check if this email should be admin (e.g., specific email)
+  const isAdminEmail = registerDto.email === 'admin@example.com';
+  
+  const user = await this.prisma.user.create({
+    data: {
+      email: registerDto.email,
+      name: registerDto.name,
+      password: hashedPassword,
+      role: isAdminEmail ? 'ADMIN' : 'CUSTOMER',
+    },
+  });
+
+  const token = this.generateToken(user.id, user.email, user.role);
+  return { user: this.excludePassword(user), token };
+}
