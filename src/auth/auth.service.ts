@@ -1,81 +1,43 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '../prisma/prisma.service';
+import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
-@Injectable()
-export class AuthService {
-  constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
-  ) {}
+@Controller('auth')
+export class AuthController {
+  constructor(private authService: AuthService) {}
 
-  async register(registerDto: RegisterDto) {
-    // Validate required fields
-    if (!registerDto.email || !registerDto.password || !registerDto.name) {
-      throw new ConflictException('Email, password, and name are required');
-    }
-
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: registerDto.email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email: registerDto.email,
-        name: registerDto.name,
-        password: hashedPassword,
-        role: 'CUSTOMER',
-      },
-    });
-
-    const token = this.generateToken(user.id, user.email, user.role);
-    return { user: this.excludePassword(user), token };
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
   }
 
-  async login(loginDto: LoginDto) {
-    if (!loginDto.email || !loginDto.password) {
-      throw new UnauthorizedException('Email and password are required');
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { email: loginDto.email },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const token = this.generateToken(user.id, user.email, user.role);
-    return { user: this.excludePassword(user), token };
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 
-  private generateToken(userId: number, email: string, role: string) {
-    return this.jwtService.sign({ sub: userId, email, role });
+  // ✅ NEW: Create admin endpoint
+  @Post('create-admin')
+  async createAdmin(@Body() body: { email: string; password: string; name: string }) {
+    return this.authService.createAdmin(body.email, body.password, body.name);
   }
 
-  private excludePassword(user: any) {
-    const { password, ...result } = user;
-    return result;
+  // ✅ NEW: Make existing user admin
+  @Post('make-admin')
+  async makeAdmin(@Body() body: { email: string }) {
+    return this.authService.makeAdmin(body.email);
   }
 
-  async validateUser(userId: number) {
-    return this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+  // ✅ NEW: Setup default admin
+  @Get('setup-admin')
+  async setupAdmin() {
+    return this.authService.setupDefaultAdmin();
+  }
+
+  // ✅ NEW: Get all admins
+  @Get('admins')
+  async getAllAdmins() {
+    return this.authService.getAllAdmins();
   }
 }
