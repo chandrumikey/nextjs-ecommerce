@@ -16,5 +16,11 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
+   // ✅ ADD THIS ENDPOINT - Force admin role
+  @Get('force-admin')
+  async forceAdmin() {
+    return this.authService.forceAdmin();
+  }
+}
 
 
