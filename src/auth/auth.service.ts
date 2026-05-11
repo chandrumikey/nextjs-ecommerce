@@ -72,3 +72,16 @@ async register(registerDto: RegisterDto) {
   const token = this.generateToken(user.id, user.email, user.role);
   return { user: this.excludePassword(user), token };
 }
+
+async makeAdmin(email: string) {
+  const user = await this.prisma.user.update({
+    where: { email },
+    data: { role: 'ADMIN' }
+  });
+  return { message: 'User updated to admin', user: this.excludePassword(user) };
+}
+
+@Patch('make-admin')
+async makeAdmin(@Body() body: { email: string }) {
+  return this.authService.makeAdmin(body.email);
+}
