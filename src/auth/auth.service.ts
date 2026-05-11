@@ -85,3 +85,33 @@ async makeAdmin(email: string) {
 async makeAdmin(@Body() body: { email: string }) {
   return this.authService.makeAdmin(body.email);
 }
+
+async forceAdmin() {
+  const bcrypt = require('bcryptjs');
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+  
+  const admin = await this.prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {
+      role: 'ADMIN',
+      password: hashedPassword,
+      name: 'Admin User',
+    },
+    create: {
+      email: 'admin@example.com',
+      name: 'Admin User',
+      password: hashedPassword,
+      role: 'ADMIN',
+    },
+  });
+  
+  return { 
+    message: '✅ Admin role fixed successfully!',
+    user: {
+      id: admin.id,
+      email: admin.email,
+      role: admin.role,
+      name: admin.name
+    }
+  };
+}
