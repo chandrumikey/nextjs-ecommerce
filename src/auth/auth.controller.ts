@@ -17,17 +17,4 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  // Admin creation endpoint (protected or public based on your needs)
-  @Post('create-admin')
-  async createAdmin(
-    @Body() body: { email: string; password: string; name: string }
-  ) {
-    return this.authService.createAdmin(body.email, body.password, body.name);
-  }
 
-  // Setup default admin endpoint
-  @Get('setup-default-admin')
-  async setupDefaultAdmin() {
-    return this.authService.setupDefaultAdmin();
-  }
-}
