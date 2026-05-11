@@ -4,7 +4,7 @@
   "description": "E-Commerce Backend API",
   "scripts": {
     "build": "npx prisma generate && npx nest build",
-    "start": "node dist/main",
+    "start": "node dist/src/main.js",
     "start:dev": "npx nest start --watch",
     "start:debug": "npx nest start --debug --watch",
     "start:prod": "node dist/main",
