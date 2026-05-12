@@ -17,11 +17,11 @@ export class CreateProductDto {
   @Min(0)
   stock: number;
 
-  @IsOptional()
-  @IsUrl()
-  imageUrl?: string;
-
   @IsString()
   @IsNotEmpty()
   category: string;
+
+  @IsOptional()
+  @IsUrl()
+  imageUrl?: string;
 }
