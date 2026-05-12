@@ -8,18 +8,8 @@ export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createProductDto: CreateProductDto) {
-    // Ensure all required fields are present
-    const productData = {
-      name: createProductDto.name,
-      description: createProductDto.description,
-      price: createProductDto.price,
-      stock: createProductDto.stock,
-      category: createProductDto.category,
-      imageUrl: createProductDto.imageUrl || null,
-    };
-    
     return this.prisma.product.create({
-      data: productData,
+      data: createProductDto,
     });
   }
 
@@ -44,18 +34,10 @@ export class ProductsService {
   async update(id: number, updateProductDto: UpdateProductDto) {
     await this.findOne(id);
     
-    // Only include fields that are provided
-    const updateData: any = {};
-    if (updateProductDto.name !== undefined) updateData.name = updateProductDto.name;
-    if (updateProductDto.description !== undefined) updateData.description = updateProductDto.description;
-    if (updateProductDto.price !== undefined) updateData.price = updateProductDto.price;
-    if (updateProductDto.stock !== undefined) updateData.stock = updateProductDto.stock;
-    if (updateProductDto.category !== undefined) updateData.category = updateProductDto.category;
-    if (updateProductDto.imageUrl !== undefined) updateData.imageUrl = updateProductDto.imageUrl;
-    
+    // Prisma will only update fields that are provided
     return this.prisma.product.update({
       where: { id },
-      data: updateData,
+      data: updateProductDto,
     });
   }
 
